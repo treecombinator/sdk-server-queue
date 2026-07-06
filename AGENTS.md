@@ -25,4 +25,4 @@ acks each message on success and retries it on throw.
 ## Notes
 
 - Adapter: Cloudflare Queues. `binding` is the producer `Queue<T>` binding from `@cloudflare/workers-types`.
-- `consumeBatch` never throws — ack vs. retry is decided by whether `handler` throws. Zero runtime dependencies.
+- `consumeBatch` never throws — ack vs. retry is decided by whether `handler` throws. `enqueueBatch` slices into chunks of 100 (Cloudflare's per-`sendBatch` cap). Zero runtime dependencies.

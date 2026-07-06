@@ -11,7 +11,10 @@ export function createCloudflareQueue<T>(config: CloudflareQueueConfig<T>): Mess
       await config.binding.send(message);
     },
     async enqueueBatch(messages) {
-      await config.binding.sendBatch(messages.map((body) => ({ body })));
+      // Cloudflare Queues caps sendBatch at 100 messages per call.
+      for (let i = 0; i < messages.length; i += 100) {
+        await config.binding.sendBatch(messages.slice(i, i + 100).map((body) => ({ body })));
+      }
     },
   };
 }

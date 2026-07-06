@@ -44,7 +44,7 @@ export default {
 `createQueue<T>({ binding })` returns a `MessageQueue<T>`:
 
 - `enqueue(message)` — send a single message onto the queue.
-- `enqueueBatch(messages)` — send many messages in one call.
+- `enqueueBatch(messages)` — send many messages; sliced automatically into chunks of 100 (Cloudflare's per-`sendBatch` cap).
 
 `consumeBatch<T>(batch, handler)` — process a `MessageBatch<T>` inside the Worker's `queue()` handler. Each message is `ack`ed when the handler resolves and `retry`ed when it throws, so a failed message is redelivered without affecting its siblings. `handler` is `(message: T) => Promise<void>`.
 
