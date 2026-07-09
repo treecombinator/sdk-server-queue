@@ -1,8 +1,18 @@
 import type { MessageQueue } from "../queue";
 
-/** Wraps a Cloudflare Queues producer binding (`Queue<T>` from workers-types). */
+/**
+ * Structural slice of the Cloudflare Queues producer binding (`Queue<T>` in
+ * `@cloudflare/workers-types`) — only the members this package calls, so apps
+ * type-check against it without depending on workers-types.
+ */
+export interface CloudflareQueueBinding<T> {
+  send(message: T): Promise<unknown>;
+  sendBatch(messages: { body: T }[]): Promise<unknown>;
+}
+
+/** Wraps a Cloudflare Queues producer binding. */
 export interface CloudflareQueueConfig<T> {
-  binding: Queue<T>;
+  binding: CloudflareQueueBinding<T>;
 }
 
 export function createCloudflareQueue<T>(config: CloudflareQueueConfig<T>): MessageQueue<T> {
