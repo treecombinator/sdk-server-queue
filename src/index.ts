@@ -1,7 +1,7 @@
 import type { MessageQueue } from "./queue";
 import { createCloudflareQueue, type CloudflareQueueConfig } from "./adapters/cloudflare";
 
-export type { MessageQueue } from "./queue";
+export type { MessageQueue, EnqueueOptions, QueueBatchEntry } from "./queue";
 export type { CloudflareQueueConfig, CloudflareQueueBinding } from "./adapters/cloudflare";
 export {
   consumeBatch,

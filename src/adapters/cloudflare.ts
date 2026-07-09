@@ -1,4 +1,4 @@
-import type { MessageQueue } from "../queue";
+import type { EnqueueOptions, MessageQueue, QueueBatchEntry } from "../queue";
 
 /**
  * Structural slice of the Cloudflare Queues producer binding (`Queue<T>` in
@@ -6,8 +6,8 @@ import type { MessageQueue } from "../queue";
  * type-check against it without depending on workers-types.
  */
 export interface CloudflareQueueBinding<T> {
-  send(message: T): Promise<unknown>;
-  sendBatch(messages: { body: T }[]): Promise<unknown>;
+  send(message: T, options?: EnqueueOptions): Promise<unknown>;
+  sendBatch(messages: QueueBatchEntry<T>[], options?: EnqueueOptions): Promise<unknown>;
 }
 
 /** Wraps a Cloudflare Queues producer binding. */
@@ -17,13 +17,13 @@ export interface CloudflareQueueConfig<T> {
 
 export function createCloudflareQueue<T>(config: CloudflareQueueConfig<T>): MessageQueue<T> {
   return {
-    async enqueue(message) {
-      await config.binding.send(message);
+    async enqueue(message, options) {
+      await config.binding.send(message, options);
     },
-    async enqueueBatch(messages) {
+    async enqueueBatch(entries, options) {
       // Cloudflare Queues caps sendBatch at 100 messages per call.
-      for (let i = 0; i < messages.length; i += 100) {
-        await config.binding.sendBatch(messages.slice(i, i + 100).map((body) => ({ body })));
+      for (let i = 0; i < entries.length; i += 100) {
+        await config.binding.sendBatch(entries.slice(i, i + 100), options);
       }
     },
   };
