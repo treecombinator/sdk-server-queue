@@ -14,16 +14,31 @@ export interface QueueMessageBatch<T> {
 
 export type MessageHandler<T> = (message: T) => Promise<void>;
 
+export interface ConsumeBatchOptions<T> {
+  /** Observes a message the handler failed on; the message is still retried. */
+  onError?: (message: T, error: unknown) => void;
+}
+
 /**
  * Process a Cloudflare Queues batch: ack on success, retry on throw.
- * Use inside the Worker's `queue(batch, env)` handler.
+ * Use inside the Worker's `queue(batch, env)` handler. Never throws — a
+ * failing message is retried without affecting siblings.
  */
-export async function consumeBatch<T>(batch: QueueMessageBatch<T>, handler: MessageHandler<T>): Promise<void> {
+export async function consumeBatch<T>(
+  batch: QueueMessageBatch<T>,
+  handler: MessageHandler<T>,
+  options: ConsumeBatchOptions<T> = {},
+): Promise<void> {
   for (const message of batch.messages) {
     try {
       await handler(message.body);
       message.ack();
-    } catch {
+    } catch (error) {
+      try {
+        options.onError?.(message.body, error);
+      } catch {
+        // Delivery must not depend on the observer.
+      }
       message.retry();
     }
   }
